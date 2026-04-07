@@ -1,4 +1,4 @@
-# Steam User Analysis API Server
+# Steam User Analysis API Server (OpenSW_SteamMLops)
 
 This project provides a FastAPI based web server to analyze a Steam user's playstyle based on their owned games and playtime.
 It is built with MLOps considerations such as proper project structure, environment configuration, and containerization to make deploying it as part of an MLOps pipeline effortless.
@@ -45,3 +45,4 @@ To deploy using Docker:
 - `GET /health` : Returns basic health check.
 - `GET /api/v1/analyze/{steam_id}` : Returns user playstyle analysis.
   - *Note: `steam_id` format expects a 17 digit Steam64 ID (e.g. `76561197960434622`). The Steam account must be public to retrieve game data.*
+
