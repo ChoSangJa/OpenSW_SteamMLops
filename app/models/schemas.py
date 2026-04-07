@@ -8,3 +8,4 @@ class AnalysisResponse(BaseModel):
     playstyle: str
     top_games: List[Dict[str, Any]]
     recommendations: List[Dict[str, str]]
+    genres: List[str]

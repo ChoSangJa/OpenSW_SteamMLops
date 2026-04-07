@@ -29,20 +29,32 @@ async def analyze_user(steam_id: str):
         games = raw_data["response"]["games"]
         game_count = raw_data["response"].get("game_count", 0)
         print(f"Analyzing {len(games)} games for {steam_id}")
+
+        # 2. Fetch Achievements for Top 5 Games
+        sorted_games = sorted(games, key=lambda x: x.get("playtime_forever", 0), reverse=True)
+        top_apps = [g.get("appid") for g in sorted_games[:5] if g.get("playtime_forever", 0) > 0]
+        
+        achievements_data = {}
+        for appid in top_apps:
+            print(f"Fetching achievements for appid: {appid}")
+            ach_res = await steam_service.get_player_achievements(steam_id, appid)
+            if ach_res:
+                achievements_data[appid] = ach_res
             
-        # 2. Analyze data
+        # 3. Analyze data
         analyzer = Analyzer()
-        analysis_result = analyzer.analyze_playstyle(games)
+        analysis_result = analyzer.analyze_playstyle(games, achievements_data)
         
         print(f"Analysis complete for {steam_id}: {analysis_result['playstyle']}")
-        # 3. Format response
+        # 4. Format response
         return AnalysisResponse(
             steam_id=steam_id,
             total_playtime_hours=analysis_result["total_playtime"],
             total_games_owned=game_count,
             playstyle=analysis_result["playstyle"],
             top_games=analysis_result["top_games"],
-            recommendations=analysis_result["recommendations"]
+            recommendations=analysis_result["recommendations"],
+            genres=analysis_result["genres"]
         )
     except Exception as e:
         print(f"ERROR analyzing user {steam_id}: {str(e)}")

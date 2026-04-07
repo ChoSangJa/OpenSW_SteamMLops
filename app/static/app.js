@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // UI Elements
     const playstyleResult = document.getElementById('playstyleResult');
+    const genreTags = document.getElementById('genreTags');
     const playtimeResult = document.getElementById('playtimeResult');
     const gameCountResult = document.getElementById('gameCountResult');
     const topGamesList = document.getElementById('topGamesList');
@@ -52,6 +53,17 @@ document.addEventListener('DOMContentLoaded', () => {
         playtimeResult.textContent = data.total_playtime_hours.toLocaleString();
         gameCountResult.textContent = data.total_games_owned.toLocaleString();
 
+        // Render genre tags
+        genreTags.innerHTML = '';
+        if (data.genres) {
+            data.genres.forEach(genre => {
+                const span = document.createElement('span');
+                span.className = 'genre-tag';
+                span.textContent = genre;
+                genreTags.appendChild(span);
+            });
+        }
+
         // Clear and render top games
         topGamesList.innerHTML = '';
         if (data.top_games && data.top_games.length > 0) {
@@ -59,10 +71,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const li = document.createElement('li');
                 li.className = 'game-item';
                 li.innerHTML = `
-                    <span class="game-name">${game.name}</span>
-                    <span class="game-time">${game.playtime_hours.toLocaleString()} 시간</span>
+                    <div class="game-info-row">
+                        <span class="game-name">${game.name} <span class="game-genre">${game.genre}</span></span>
+                        <span class="game-time">${game.playtime_hours.toLocaleString()} 시간</span>
+                    </div>
+                    <div class="achievement-container">
+                        <div class="achievement-header">
+                            <span>도전과제 달성률</span>
+                            <span>${game.achievement_rate}%</span>
+                        </div>
+                        <div class="achievement-bar-bg">
+                            <div class="achievement-bar-fill" style="width: 0%"></div>
+                        </div>
+                    </div>
                 `;
                 topGamesList.appendChild(li);
+                
+                // Trigger animation
+                setTimeout(() => {
+                    li.querySelector('.achievement-bar-fill').style.width = `${game.achievement_rate}%`;
+                }, 100);
             });
         } else {
             topGamesList.innerHTML = '<li class="hint">플레이 데이터가 있는 게임이 없습니다.</li>';
