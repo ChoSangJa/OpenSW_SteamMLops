@@ -7,3 +7,4 @@ class AnalysisResponse(BaseModel):
     total_games_owned: int
     playstyle: str
     top_games: List[Dict[str, Any]]
+    recommendations: List[Dict[str, str]]

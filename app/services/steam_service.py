@@ -24,7 +24,9 @@ class SteamService:
             "include_played_free_games": "1"
         }
         
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            print(f"Fetching games for Steam ID: {steam_id}")
             response = await client.get(url, params=params)
+            print(f"Steam API response status: {response.status_code}")
             response.raise_for_status()
             return response.json()

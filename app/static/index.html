@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Playstyle Analyzer</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-blob"></div>
+    <div class="background-blob second"></div>
+    
+    <main class="container">
+        <header>
+            <h1>Steam Playstyle <span>Analyzer</span></h1>
+            <p>나의 게임 취향과 활동량을 분석해보세요</p>
+        </header>
+
+        <section class="search-box glass">
+            <div class="input-group">
+                <input type="text" id="steamIdInput" placeholder="Steam64 ID (17자리 숫자)" maxlength="17">
+                <button id="analyzeBtn">분석하기</button>
+            </div>
+            <p class="hint">예시: 76561198031548171 (프로필이 공개여야 합니다)</p>
+        </section>
+
+        <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <p>데이터를 분석 중입니다...</p>
+        </div>
+
+        <section id="resultArea" class="hidden">
+            <div class="result-grid">
+                <div class="card glass highlight">
+                    <h3>내 게임 성향</h3>
+                    <div id="playstyleResult" class="playstyle-badge">---</div>
+                </div>
+                
+                <div class="card glass">
+                    <h3>총 플레이 시간</h3>
+                    <div class="stat-value"><span id="playtimeResult">0</span> <span>시간</span></div>
+                </div>
+
+                <div class="card glass">
+                    <h3>보유 게임 수</h3>
+                    <div class="stat-value"><span id="gameCountResult">0</span> <span>개</span></div>
+                </div>
+            </div>
+
+            <div class="top-games-box glass">
+                <h3>가장 많이 즐긴 게임 TOP 5</h3>
+                <ul id="topGamesList" class="game-list">
+                    <!-- Dynamic Content -->
+                </ul>
+            </div>
+
+            <div class="recommendations-box glass">
+                <h3>당신을 위한 맞춤 게임 추천</h3>
+                <div id="recommendationsList" class="rec-grid">
+                    <!-- Dynamic Content -->
+                </div>
+            </div>
+        </section>
+
+        <footer class="glass-footer">
+            <p>&copy; 2026 Steam Playstyle Analyzer | Powered by FastAPI & Steam API</p>
+        </footer>
+    </main>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
