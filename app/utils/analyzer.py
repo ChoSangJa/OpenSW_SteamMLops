@@ -38,9 +38,18 @@ class Analyzer:
         genre_counts = {}
         for game in games:
             appid = game.get("appid")
-            genre = self.GENRE_MAP.get(appid, "Other")
-            if game.get("playtime_forever", 0) > 0:
-                genre_counts[genre] = genre_counts.get(genre, 0) + game.get("playtime_forever", 0)
+            playtime = game.get("playtime_forever", 0)
+            if playtime > 0:
+                genre = self.GENRE_MAP.get(appid)
+                if not genre:
+                    if app_details and appid in app_details:
+                        genres_list = app_details[appid].get("genres")
+                        if genres_list:
+                            genre = genres_list[0].get("description", "Game")
+                if not genre:
+                    genre = "Other"
+                    
+                genre_counts[genre] = genre_counts.get(genre, 0) + playtime
         
         sorted_genres = sorted(genre_counts.items(), key=lambda x: x[1], reverse=True)
         top_genres = [g[0] for g in sorted_genres[:3] if g[0] != "Other"]
@@ -200,12 +209,34 @@ class Analyzer:
                 if len(final_recs) >= 3:
                     break
                     
-        if not final_recs:
-            if "the elder scrolls v: skyrim special edition" not in owned_games and "skyrim" not in owned_games:
-                final_recs.append({"name": "Skyrim", "reason": "언제나 좋은 선택입니다."})
-            elif "portal 2" not in owned_games:
-                final_recs.append({"name": "Portal 2", "reason": "짧고 강력한 퍼즐 경험방식의 명작입니다."})
-            else:
-                final_recs.append({"name": "Hollow Knight", "reason": "훌륭한 레벨 디자인을 자랑하는 수작입니다."})
+        massive_fallback = [
+            {"name": "The Elder Scrolls V: Skyrim", "reason": "언제나 좋은 선택입니다."},
+            {"name": "Portal 2", "reason": "짧고 강력한 퍼즐 경험방식의 명작입니다."},
+            {"name": "Hollow Knight", "reason": "최고의 메트로배니아를 경험해보세요."},
+            {"name": "Stardew Valley", "reason": "평화로운 농장 생활로 힐링하세요."},
+            {"name": "Terraria", "reason": "파고들 요소가 가득한 샌드박스입니다."},
+            {"name": "Hades", "reason": "시원한 액션과 재미를 갖춘 로그라이크입니다."},
+            {"name": "Cyberpunk 2077", "reason": "방대한 나이트 시티로 떠나보세요."},
+            {"name": "Elden Ring", "reason": "극한의 달성감을 주는 최고의 액션 RPG!"},
+            {"name": "Slay the Spire", "reason": "중독성 넘치는 덱빌딩 로그라이크입니다."},
+            {"name": "Red Dead Redemption 2", "reason": "최고의 서부 시대 오픈월드입니다."}
+        ]
+        
+        # 3개가 채워질 때까지 반복해서 추가
+        for fallback in massive_fallback:
+            if len(final_recs) >= 3:
+                break
+                
+            game_name = fallback["name"]
+            game_name_lower = game_name.lower().strip()
             
+            # 부분 문자열 매칭으로 넉넉하게 중복 소유 확인 (예: skyrim 과 skyrim special edition 매칭)
+            is_owned = any(owned in game_name_lower or game_name_lower in owned for owned in owned_games) if owned_games else False
+            if game_name_lower == "the elder scrolls v: skyrim":
+                is_owned = is_owned or "skyrim" in owned_games
+                
+            if not is_owned and game_name not in seen:
+                seen.add(game_name)
+                final_recs.append(fallback)
+                
         return final_recs
