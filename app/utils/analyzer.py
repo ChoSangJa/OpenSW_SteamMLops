@@ -17,7 +17,7 @@ class Analyzer:
         1794680: "Vampire-like", 219740: "Action Roguelike",
     }
 
-    def analyze_playstyle(self, games: List[Dict[str, Any]], achievements: Dict[int, Dict[str, Any]] = None, app_details: Dict[int, Dict[str, Any]] = None) -> Dict[str, Any]:
+    def analyze_playstyle(self, games: List[Dict[str, Any]], achievements: Dict[int, Dict[str, Any]] = None, app_details: Dict[int, Dict[str, Any]] = None, storefront_tags: Dict[int, List[str]] = None, llm_analyzer=None) -> Dict[str, Any]:
         """
         Analyze a list of Steam games and achievement data to determine playstyle,
         preferred genres, and recommendations.
@@ -72,7 +72,12 @@ class Analyzer:
                         ach_rate = round((completed / len(achs)) * 100, 1)
             
             genre_name = ""
-            if app_details and appid in app_details:
+            st_tags = storefront_tags.get(appid, []) if storefront_tags else []
+            
+            if llm_analyzer and st_tags:
+                genre_name = llm_analyzer.analyze_genre(game.get("name", "Unknown Game"), st_tags)
+            
+            if not genre_name and app_details and appid in app_details:
                 genres_list = app_details[appid].get("genres")
                 if genres_list:
                     genre_name = ", ".join([g.get("description", "Game") for g in genres_list])

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 import httpx
 from app.services.steam_service import SteamService
+from app.services.llm_service import LLMAnalyzer
 from app.utils.analyzer import Analyzer
 from app.models.schemas import AnalysisResponse
 
@@ -36,6 +37,7 @@ async def analyze_user(steam_id: str):
         
         achievements_data = {}
         app_details_data = {}
+        storefront_tags_data = {}
         for appid in top_apps:
             print(f"Fetching achievements and details for appid: {appid}")
             ach_res = await steam_service.get_player_achievements(steam_id, appid)
@@ -45,10 +47,15 @@ async def analyze_user(steam_id: str):
             details_res = await steam_service.get_app_details(appid)
             if details_res:
                 app_details_data[appid] = details_res
+                
+            tags_res = await steam_service.get_storefront_tags(appid)
+            if tags_res:
+                storefront_tags_data[appid] = tags_res
             
         # 3. Analyze data
         analyzer = Analyzer()
-        analysis_result = analyzer.analyze_playstyle(games, achievements_data, app_details_data)
+        llm_analyzer = LLMAnalyzer()
+        analysis_result = analyzer.analyze_playstyle(games, achievements_data, app_details_data, storefront_tags_data, llm_analyzer)
         
         print(f"Analysis complete for {steam_id}: {analysis_result['playstyle']}")
         # 4. Format response

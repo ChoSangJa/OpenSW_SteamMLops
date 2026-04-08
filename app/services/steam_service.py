@@ -1,5 +1,5 @@
 import httpx
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from app.core.config import settings
 
 class SteamService:
@@ -73,3 +73,36 @@ class SteamService:
         except Exception as e:
             print(f"Warning: Failed to fetch app details for appid {appid}: {e}")
             return None
+
+    async def get_storefront_tags(self, appid: int) -> List[str]:
+        """
+        Scrapes the Steam store page for the user tags, ignoring adult filters by cookie if necessary.
+        Returns the top tags defined by the community.
+        """
+        from bs4 import BeautifulSoup
+        
+        url = f"https://store.steampowered.com/app/{appid}/"
+        cookies = {
+            'birthtime': '283993201', # Age bypass
+            'lastagecheckage': '1-0-1980'
+        }
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+        }
+        
+        try:
+            async with httpx.AsyncClient(timeout=10.0, cookies=cookies, headers=headers) as client:
+                response = await client.get(url)
+                if response.status_code != 200:
+                    return []
+                soup = BeautifulSoup(response.text, "html.parser")
+                tag_links = soup.select("a.app_tag")
+                tags = []
+                for t in tag_links:
+                    tag_text = t.text.strip()
+                    if tag_text != "+":
+                        tags.append(tag_text)
+                return tags[:5] # Return top 5 tags
+        except Exception as e:
+            print(f"Warning: Failed to fetch storefront tags for {appid}: {e}")
+            return []
