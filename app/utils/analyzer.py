@@ -62,16 +62,14 @@ class Analyzer:
                         completed = sum(1 for a in achs if a.get("achieved") == 1)
                         ach_rate = round((completed / len(achs)) * 100, 1)
             
-            genre_name = self.GENRE_MAP.get(appid)
+            genre_name = ""
+            if app_details and appid in app_details:
+                genres_list = app_details[appid].get("genres")
+                if genres_list:
+                    genre_name = ", ".join([g.get("description", "Game") for g in genres_list])
+                    
             if not genre_name:
-                if app_details and appid in app_details:
-                    genres_list = app_details[appid].get("genres")
-                    if genres_list:
-                        # Extract the top genre tag
-                        genre_name = genres_list[0].get("description", "Game")
-                        
-            if not genre_name:
-                genre_name = "Game"
+                genre_name = self.GENRE_MAP.get(appid, "Game")
             
             top_games.append({
                 "appid": appid,
