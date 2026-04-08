@@ -70,9 +70,11 @@ class Analyzer:
                 "achievement_rate": ach_rate
             })
         
+        owned_game_names = {g.get("name", "").lower().strip() for g in games if g.get("name")}
+        
         avg_ach_rate = sum(g["achievement_rate"] for g in top_games) / len(top_games) if top_games else 0
         playstyle = self._determine_playstyle(total_playtime_hours, len(games), avg_ach_rate, top_genre)
-        recommendations = self._get_recommendations(total_playtime_hours, top_genre)
+        recommendations = self._get_recommendations(total_playtime_hours, top_genre, owned_game_names)
         
         return {
             "total_playtime": total_playtime_hours,
@@ -104,7 +106,7 @@ class Analyzer:
             return f"{base_style} ({top_genre} Lover)"
         return base_style
 
-    def _get_recommendations(self, hours: float, top_genre: str) -> List[Dict[str, str]]:
+    def _get_recommendations(self, hours: float, top_genre: str, owned_games: set) -> List[Dict[str, str]]:
         genre_recs = {
             "FPS": [
                 {"name": "Valorant", "reason": "FPS 장르를 선호하시네요! 섬세한 에임과 전술이 요구되는 발로란트를 추천합니다."},
@@ -178,17 +180,23 @@ class Analyzer:
         elif hours > 0 and len(recs) < 3:
             recs.extend(fallback_recs["Casual"])
             
-        # 고유한 게임 3개까지만 반환
+        # 고유한 게임 3개까지만 반환 (보유 중인 게임 제외)
         seen = set()
         final_recs = []
         for r in recs:
-            if r["name"] not in seen:
+            rec_name_lower = r["name"].lower().strip()
+            if rec_name_lower not in owned_games and r["name"] not in seen:
                 seen.add(r["name"])
                 final_recs.append(r)
                 if len(final_recs) >= 3:
                     break
                     
         if not final_recs:
-            final_recs.append({"name": "Skyrim", "reason": "언제나 좋은 선택입니다."})
+            if "the elder scrolls v: skyrim special edition" not in owned_games and "skyrim" not in owned_games:
+                final_recs.append({"name": "Skyrim", "reason": "언제나 좋은 선택입니다."})
+            elif "portal 2" not in owned_games:
+                final_recs.append({"name": "Portal 2", "reason": "짧고 강력한 퍼즐 경험방식의 명작입니다."})
+            else:
+                final_recs.append({"name": "Hollow Knight", "reason": "훌륭한 레벨 디자인을 자랑하는 수작입니다."})
             
         return final_recs
