@@ -51,3 +51,25 @@ class SteamService:
         except Exception as e:
             print(f"Warning: Failed to fetch achievements for appid {appid}: {e}")
             return None
+
+    async def get_app_details(self, appid: int) -> Optional[Dict[str, Any]]:
+        """
+        Fetch store details for a specific game (appid), like genres.
+        """
+        url = "https://store.steampowered.com/api/appdetails"
+        params = {
+            "appids": appid,
+            "l": "korean" # Return details in Korean mostly
+        }
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.get(url, params=params)
+                if response.status_code == 200:
+                    data = response.json()
+                    str_appid = str(appid)
+                    if data and str_appid in data and data[str_appid].get("success"):
+                        return data[str_appid]["data"]
+                return None
+        except Exception as e:
+            print(f"Warning: Failed to fetch app details for appid {appid}: {e}")
+            return None

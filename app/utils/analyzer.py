@@ -17,7 +17,7 @@ class Analyzer:
         1794680: "Vampire-like", 219740: "Action Roguelike",
     }
 
-    def analyze_playstyle(self, games: List[Dict[str, Any]], achievements: Dict[int, Dict[str, Any]] = None) -> Dict[str, Any]:
+    def analyze_playstyle(self, games: List[Dict[str, Any]], achievements: Dict[int, Dict[str, Any]] = None, app_details: Dict[int, Dict[str, Any]] = None) -> Dict[str, Any]:
         """
         Analyze a list of Steam games and achievement data to determine playstyle,
         preferred genres, and recommendations.
@@ -62,11 +62,22 @@ class Analyzer:
                         completed = sum(1 for a in achs if a.get("achieved") == 1)
                         ach_rate = round((completed / len(achs)) * 100, 1)
             
+            genre_name = self.GENRE_MAP.get(appid)
+            if not genre_name:
+                if app_details and appid in app_details:
+                    genres_list = app_details[appid].get("genres")
+                    if genres_list:
+                        # Extract the top genre tag
+                        genre_name = genres_list[0].get("description", "Game")
+                        
+            if not genre_name:
+                genre_name = "Game"
+            
             top_games.append({
                 "appid": appid,
                 "name": game.get("name", "Unknown Game"),
                 "playtime_hours": round(game.get("playtime_forever", 0) / 60, 2),
-                "genre": self.GENRE_MAP.get(appid, "Game"),
+                "genre": genre_name,
                 "achievement_rate": ach_rate
             })
         

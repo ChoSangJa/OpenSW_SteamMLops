@@ -30,20 +30,25 @@ async def analyze_user(steam_id: str):
         game_count = raw_data["response"].get("game_count", 0)
         print(f"Analyzing {len(games)} games for {steam_id}")
 
-        # 2. Fetch Achievements for Top 5 Games
+        # 2. Fetch Achievements and Details for Top 5 Games
         sorted_games = sorted(games, key=lambda x: x.get("playtime_forever", 0), reverse=True)
         top_apps = [g.get("appid") for g in sorted_games[:5] if g.get("playtime_forever", 0) > 0]
         
         achievements_data = {}
+        app_details_data = {}
         for appid in top_apps:
-            print(f"Fetching achievements for appid: {appid}")
+            print(f"Fetching achievements and details for appid: {appid}")
             ach_res = await steam_service.get_player_achievements(steam_id, appid)
             if ach_res:
                 achievements_data[appid] = ach_res
             
+            details_res = await steam_service.get_app_details(appid)
+            if details_res:
+                app_details_data[appid] = details_res
+            
         # 3. Analyze data
         analyzer = Analyzer()
-        analysis_result = analyzer.analyze_playstyle(games, achievements_data)
+        analysis_result = analyzer.analyze_playstyle(games, achievements_data, app_details_data)
         
         print(f"Analysis complete for {steam_id}: {analysis_result['playstyle']}")
         # 4. Format response
